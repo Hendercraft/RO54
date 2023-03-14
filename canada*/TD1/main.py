@@ -35,23 +35,26 @@ class Locator:
                     self.max[j] = i.coords[j]
     
     def compute_terminal(self,step : float) -> Terminal:
-        dist_min = 999
+        dist_min = 9999
         Estimator = None
         for i in np.arange (self.min[0],self.max[0],step):
             for j in np.arange (self.min[1],self.max[1],step):
                 for k in np.arange (self.min[2],self.max[2],step):
+                    distance = 0
                     for emettor in self.emettors:
-                        distance = emettor.compute_distance([i,j,k]) - emettor.distance
-                        if dist_min > distance:
-                            dist_min = distance
-                            Estimator = Terminal([i,j,k])
+                        distance += abs(emettor.compute_distance([i,j,k]) - emettor.distance)
+                    if dist_min > distance:
+                        dist_min = distance
+                        Estimator = Terminal([i,j,k])
+                        print("New best point :")
+                        print(i,j,k)
+                        print("distance :", distance)
         return Estimator
 
 ap1 = Emettor((0.5,0.5,0.5),3)
 ap2 = Emettor((4,0,0),2)
 ap3 = Emettor((4,5,5),4.2)
 ap4 = Emettor((3,3,3),2.5)
-
 
 locator = Locator((ap1,ap2,ap3,ap4))
 locator.compute_search_area()
