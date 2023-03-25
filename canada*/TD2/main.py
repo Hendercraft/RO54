@@ -91,7 +91,7 @@ class GoFingerPrint:
             y += (self.alphas[i] * self.kcells[i].position.coords[1])
         self.terminal.coords = (x, y)
 
-    def Master(self):
+    def solve(self):
         self.compute_cells_metrics()
         self.getKcells()
         self.compute_alpha()
@@ -111,4 +111,4 @@ cells_list = [
 terminal = Object([-26, -42, -13, -46])
 
 Go = GoFingerPrint(cells_list, terminal)
-Go.Master()
+Go.solve()
