@@ -10,15 +10,20 @@ class FingerprintSample:
 		add a new RSSI sample to the list
         if an RSSI sample with the same mac address already exist, add it the RSSI value
 		"""
-        # Check if we found a sample with the same mac address
+        sample = self.get_RSSIsample(mac_address)
+        if  sample != None :
+            sample.add(rssi_value)
+            return
+        else:  
+            # No match found, create a new sample 
+            new_sample = RSSISample(mac_address)
+            new_sample.add(rssi_value)
+            self.samples.append(new_sample)
+
+
+    def get_RSSIsample(self,mac_address : string) -> RSSISample or None:
         for RSSISample_parser in self.samples:
             if RSSISample_parser.mac_address == mac_address:
-    			# Associate this RSSI with the mac address we found
-                RSSISample_parser.add(rssi_value)
-                #Since there can only be one match, we stop the parsing
-                return
-        
-    	# No match found, create a new sample 
-        new_sample = RSSISample(mac_address)
-        new_sample.add(rssi_value)
-        self.samples.append(new_sample)
+                return RSSISample_parser
+        return None
+
