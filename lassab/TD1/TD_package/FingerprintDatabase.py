@@ -24,7 +24,7 @@ class FingerprintDatabase:
     def compute_avg_all(self):
         for fingerprint_Parser in self.db:
             for sample in fingerprint_Parser.samples:
-                sample.get_average_rssi()
+                sample.compute_average_rssi()
         
 
     def read_csv(self, file_path: str) -> None:

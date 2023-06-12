@@ -6,7 +6,7 @@ class RSSISample:
         self.rssi_list = []
         self.avg_rssi = 0
 
-    def get_average_rssi(self) -> float:
+    def compute_average_rssi(self) -> float:
         avg_mW = 0.
         n = 0
         #Parse the list of rssi, convert the value to mW and add it to the avg
