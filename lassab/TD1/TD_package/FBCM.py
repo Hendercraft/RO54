@@ -1,63 +1,56 @@
 from cmath import log
-from scipy.optimize import least_squares
-import numpy as np
-from TD_package.RSSISample import RSSISample
-from TD_package.AccessPoint import AccessPoint
-from TD1.TD_package.SimpleLocation import SimpleLocation
 
-import math import pi
+import numpy as np
+import pi
+from TD1.TD_package.SimpleLocation import SimpleLocation
+from TD_package.AccessPoint import AccessPoint
+from TD_package.RSSISample import RSSISample
+from scipy.optimize import least_squares
 
 
 class FBCM:
 
-    def __init__(self, AP_list, calibration_data)-> None:
-        self.AP = AP_list
-
-   def __init__(self, AP_list, fingerprint_list) -> None:
+    def __init__(self, AP_list, calibration_list) -> None:
         """Constructor
-            AP_list : list of AP present
-            fingerprint_list : list of fingerprint to calibrate
-        Construct the object, and calibrate the model for the given dataset and access points
-        the list of fingerprint is used only for calibration and is dump after
+            AP_list : list of AP
+            calibration_list : list of fingerprint of TD1 used to calibrate
+        Return an instance of FBCM, using the AP_list and calibration data
         """
-        # list of Access points
-        self._AP_list = AP_list
-
+        self.AP_list = AP_list
         # list of fingerprint (used only for calibration)
-        self._fbcm_index = []
-
-        # run through the Access point list
-        for AP_n in self._AP_list:
+        self.fbcm_index = []
+        # Parsing the AP_list
+        for AP in self._AP_list:
 
             # temporary list of indexes
             AP_fbcm_index = []
 
             # run through the fingerprint list
-            for fingerprint_n in fingerprint_list:
+            for finger in calibration_list:
 
                 # evaluate the real distance between the fingerprint and the AP
-                distance = evaluateDistance(fingerprint_n.location, AP_n.location)
+                distance = SimpleLocation.evaluateDistance(finger.location, AP.location)
 
                 # run through the RSSI Sample list
-                for rssiSample in fingerprint_n._RSSISample_list:
-                    
-                    #look for RSSI Samples that concern the AP (corresponding mac address)
-                    if rssiSample.mac_address == AP_n.mac_address:
-                        # compute index with this sample and knowing the distance. 
-                        # I firstly tried to filter long distances when rssi is hign
+                for rssiSample in finger._RSSISample_list:
+
+                    # look for RSSI Samples that concern the AP (corresponding mac address)
+                    if rssiSample.mac_address == AP.mac_address:
+                        # compute index with this sample distance.
+                        # We filter when value are too high
                         if rssiSample.get_average_rssi() > -80:
-                            AP_POS_fbcm_index = _compute_FBCM_index(distance, rssiSample, AP_n)
+                            AP_POS_fbcm_index = self.compute_FBCM_index(distance, rssiSample, AP)
                             break
 
                 # adding index to the list
                 # I choose to filter indexes between 3 and 3.5
                 if AP_POS_fbcm_index > 2 and AP_POS_fbcm_index < 3.5:
                     AP_fbcm_index.append(AP_POS_fbcm_index)
-            
+
             # averaging indexes
-            self._fbcm_index.append(sum(AP_fbcm_index)/len(AP_fbcm_index))     
-        
-    
+            self._fbcm_index.append(sum(AP_fbcm_index) / len(AP_fbcm_index))
+
+    @staticmethod
     def compute_FBCM_index(distance: float, rssi: RSSISample, ap: AccessPoint) -> float:
         """Function compute_FBCM_index computes a FBCM index based on the distance (between transmitter and receiver)
         and the AP parameters. We consider the mobile device's antenna gain is 2.1 dBi.
@@ -70,11 +63,12 @@ class FBCM:
         wavelength = 299792458 / ap.output_frequency_hz
         PR = rssi.avg_rssi
         PT = ap.output_power_dbm
-        #Calculating the numerator of the formula
-        index = PT - PR + GAIN + GTX + 20*log(wavelength/4* pi)
-        index = index / 10 * log (distance)
+        # Calculating the numerator of the formula
+        index = PT - PR + GAIN + GTX + 20 * log(wavelength / 4 * pi)
+        index = index / 10 * log(distance)
         return index
-    
+
+    @staticmethod
     def estimate_distance(rssi_avg: float, fbcm_index: float, ap: AccessPoint) -> float:
         """
         Function estimate_distance estimates the distance between an access point and a test point based on
@@ -90,10 +84,11 @@ class FBCM:
         PR = rssi_avg
         PT = ap.output_power_dbm
         l = 299792458 / ap.output_frequency_hz
-    
-        estimated_distance = pow(10, (PT - PR + GT + GAIN +20*log( l/(4*pi) )) / (10 * fbcm_index))
+
+        estimated_distance = pow(10, (PT - PR + GT + GAIN + 20 * log(l / (4 * pi))) / (10 * fbcm_index))
         return estimated_distance
-    
+
+    @staticmethod
     def multilateration(distances: list[float], ap_locations: list[SimpleLocation]) -> SimpleLocation:
         """
         Perform multilateration to compute the location based on distances and access point locations.
@@ -101,6 +96,7 @@ class FBCM:
         :param ap_locations: List of access point locations
         :return: Computed location as a SimpleLocation object
         """
+
         def objective_function(location: SimpleLocation) -> np.ndarray:
             """
             Objective function for the optimization process.
@@ -115,7 +111,7 @@ class FBCM:
 
         initial_guess = SimpleLocation(0, 0, 0)  # Starting point for optimization
 
-        # Optimize the objective function using least squares
+        # Optimize the objective function using least squares (Levenberg-Marquardt algorithm)
         result = least_squares(objective_function, [initial_guess.x, initial_guess.y, initial_guess.z])
 
         # Extract the optimized location
