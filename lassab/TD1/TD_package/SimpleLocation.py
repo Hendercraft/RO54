@@ -13,6 +13,7 @@ class SimpleLocation:
         return (self.x == other.x and
                 self.y == other.y and
                 self.z == other.z)
-    
+
+    @staticmethod
     def evaluateDistance(p1, p2) -> float:
-        return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2))
+        return float((pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2)))

@@ -1,10 +1,10 @@
 from cmath import log
 
 import numpy as np
-import pi
-from TD1.TD_package.SimpleLocation import SimpleLocation
-from TD_package.AccessPoint import AccessPoint
-from TD_package.RSSISample import RSSISample
+from math import pi
+from .SimpleLocation import SimpleLocation
+from .AccessPoint import AccessPoint
+from .RSSISample import RSSISample
 from scipy.optimize import least_squares
 
 
@@ -20,7 +20,7 @@ class FBCM:
         # list of fingerprint (used only for calibration)
         self.fbcm_index = []
         # Parsing the AP_list
-        for AP in self._AP_list:
+        for AP in self.AP_list:
 
             # temporary list of indexes
             AP_fbcm_index = []
@@ -29,17 +29,17 @@ class FBCM:
             for finger in calibration_list:
 
                 # evaluate the real distance between the fingerprint and the AP
-                distance = SimpleLocation.evaluateDistance(finger.location, AP.location)
+                distance = SimpleLocation.evaluateDistance(finger.position, AP.location)
 
                 # run through the RSSI Sample list
-                for rssiSample in finger._RSSISample_list:
+                for sample in finger.samples:
 
                     # look for RSSI Samples that concern the AP (corresponding mac address)
-                    if rssiSample.mac_address == AP.mac_address:
+                    if sample.mac_address == AP.mac_address:
                         # compute index with this sample distance.
                         # We filter when value are too high
-                        if rssiSample.get_average_rssi() > -80:
-                            AP_POS_fbcm_index = self.compute_FBCM_index(distance, rssiSample, AP)
+                        if sample.avg_rssi > -80:
+                            AP_POS_fbcm_index = self.compute_FBCM_index(distance, sample, AP)
                             break
 
                 # adding index to the list
@@ -65,7 +65,7 @@ class FBCM:
         PT = ap.output_power_dbm
         # Calculating the numerator of the formula
         index = PT - PR + GAIN + GTX + 20 * log(wavelength / 4 * pi)
-        index = index / 10 * log(distance)
+        index = index / (10 * log(distance))
         return index
 
     @staticmethod
