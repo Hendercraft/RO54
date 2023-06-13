@@ -14,6 +14,9 @@ class SimpleLocation:
                 self.y == other.y and
                 self.z == other.z)
 
+    def __str__(self) -> str:
+        return '(' + str(self.x) + ', ' + str(self.y) + ', ' + str(self.z) + ')'
+
     @staticmethod
     def evaluateDistance(p1, p2) -> float:
         return float((pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2)))

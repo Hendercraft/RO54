@@ -1,4 +1,4 @@
-from TD_package.RSSISample import RSSISample
+from .RSSISample import RSSISample
 import string
 
 
